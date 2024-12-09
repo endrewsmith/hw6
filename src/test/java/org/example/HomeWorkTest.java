@@ -1,50 +1,49 @@
 package org.example;
 
+import org.example.hm6.MyMorseTranslator;
 import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class HomeWorkTest {
 
-    HomeWork homeWork = new HomeWork();
+MyMorseTranslator translator = new MyMorseTranslator();
 
     @Test
-    void managerFabric() {
+    void encodeTest() {
+        // Граничные условия:
+        // Если вводим null на выходе пустая строка
+        assertEquals("", translator.encode(null));
+        // Если ввели пустую строку, на выходе пустая строка
+        assertEquals("", translator.encode(""));
+        // Обычные тесты
+        assertEquals(".... . .-.. .-.. --- / .-- --- .-. .-.. -..", translator.encode("hello world"));
+        assertEquals(".... --- -- . / .-- --- .-. -.- / -....", translator.encode("Home Work 6"));
+        assertEquals("... --- ...", translator.encode("sos"));
+        // Кодирование игнорирует незнакомые символы
+        assertEquals("... --- ...", translator.encode("s&os"));
+        // В условие слэш идет как разделитель между словами, если слов нет, то нечего разделять
+        // (https://morsecodetranslator.com/ - работает по такой логике, но знает русские буквы)
+        assertEquals("", translator.encode("   "));
+        assertEquals("", translator.encode("привет мир"));
     }
 
     @Test
-    void check() {
-        List<Integer> expectedQueue = generateQueue(1, 4);
-        List<String> pairs = generatePairs(expectedQueue);
-        assertEquals(expectedQueue, homeWork.check(pairs));
+    void decodeTest() {
+        // Граничные условия:
+        assertEquals("", translator.decode(null));
+        assertEquals("", translator.decode(""));
+        // Обычные тесты
+        // Декодирование происходит в верхнем регистре
+        assertEquals("HELLO WORLD", translator.decode(".... . .-.. .-.. --- / .-- --- .-. .-.. -.."));
+        assertEquals("HOME WORK 6", translator.decode(".... --- -- . / .-- --- .-. -.- / -...."));
+        assertEquals("SOS", translator.decode("... --- ..."));
+        // Декодирование игнорирует пробелы
+        assertEquals("", translator.decode("    "));
+        // Декодирование игнорирует слэши
+        assertEquals("", translator.decode("/ /  /   /"));
+        // Если таких кодов не в словаре, то возвращает пустую строку
+        assertEquals("", translator.decode(".......- ............----"));
     }
-
-    private List<String> generatePairs(List<Integer> expectedQueue) {
-        List<String> pairs = new ArrayList<>();
-        Function<Integer, Integer> map = (x) -> (x < 0 || x >= expectedQueue.size()) ? 0 : expectedQueue.get(x);
-
-        for (int i = 0;
-             i < expectedQueue.size(); i++) {
-            pairs.add(String.format("%d:%d", map.apply(i - 1), map.apply(i + 1)));
-        }
-        Collections.shuffle(pairs);
-        return pairs;
-    }
-
-    private List<Integer> generateQueue(int seed, int length) {
-        return new Random(seed)
-                .ints(1, length * 100)
-                .limit(length)
-                .boxed()
-                .collect(Collectors.toList());
-    }
-
 
 }
